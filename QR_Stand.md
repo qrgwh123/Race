@@ -56,8 +56,8 @@ typedef struct
     float Kd;
 }PID;
 
+声明结构体类型名 = 普通变量 + _struct
 声明结构体类型名 = 全局变量 + _Struct
-结构体成员没有要求，因为要访问结构体成员要通过结构体来访问
 
 ```
 
@@ -81,3 +81,25 @@ typedef struct
 <u>如果其他文件想使用main.c里面的文件只需要在其他文件的.c里声明就可以</u>
 
 `extern uint8 variableName`
+
+# 更新
+进行命名规范是为了方便阅读源代码，但是不应该做一些没有意思的规定，比如，变量和数组使用上就可以区分出来，没有必要对这两个进行区分，要区分的应该是全局变量和局部变量，因为这两个在使用上很相似
+
+```
+宏定义 #define IMAGE_BLACK (0x00)
+
+普通变量 uint8 threshould firstName
+全局变量 uint8 Threshould FirstName
+
+普通数组 uint8 threshould[2] firstName[2];
+全局数组 uint8 Threshould[2] FirstName[2];
+
+函数名加入文件名关键词
+
+无参函数
+void CoreDrawMidcourtLine(void);
+有参函数(变量同普通变量)
+uint8 CreamFindStratingPoint(uint8 i, uint8 j);
+
+枚举值，结构体不变
+```
