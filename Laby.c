@@ -1,36 +1,43 @@
-#define IMAGEBLACK (0x00)
-#define IMAGEWHITE (0xff)
-#define WIDTH (188)
-#define HEIGHT (120)
-#define MAXSEARCHSTEPNUMBER (520)
-#define INITIALIZATIONLEFT (255)
-#define INITIALIZATIONRIGHT (0)
-#define MOVEVALUE (2)
-#define LEFTRIGHTCHANCEMAXVALUE (5)
+/*
+ * Laby.c
+ *
+ *  Created on: Nov 1, 2024
+ *      Author: Administrator
+ */
 
-int Magic_Image[HEIGHT + 2][WIDTH + 2];
-int Magic_Left_Boundary[HEIGHT + 2], Magic_Right_Boundary[HEIGHT + 2];
-int Original_Left_Boundary[HEIGHT], Original_Right_Boundary[HEIGHT];
-int Final_Left_Boundary[HEIGHT], Final_Right_Boundary[HEIGHT];
-int Midcourt_Line[HEIGHT];
+#include "zf_common_headfile.h"
+#include "Laby.h"
+
+uint8 Magic_Image[HEIGHT + 2][WIDTH + 2];
+uint8 Magic_Left_Boundary[HEIGHT + 2], Magic_Right_Boundary[HEIGHT + 2];
+uint8 Original_Left_Boundary[HEIGHT], Original_Right_Boundary[HEIGHT];
+uint8 Final_Left_Boundary[HEIGHT], Final_Right_Boundary[HEIGHT];
+uint8 Midcourt_Line[HEIGHT];
+
+uint8 PrevStartSearchPoint;
+uint8 StartSearchPoint;
+
+bool Frame_Not_Lost(uint8 i, uint8 j);
+uint8 Boundary_Updata(uint8 i, uint8 j, uint8 leftOrRight, uint8 selection);
 
 int Labyrinth_Init(void)
 {
-    for(int i = 0; i < HEIGHT + 2; i++)
+    for(uint8 i = 0; i < HEIGHT + 2; i++)
     {
-        for(int j = 0; j < WIDTH + 2; j++)
+        for(uint8 j = 0; j < WIDTH + 2; j++)
         {
             Magic_Image[i][j] = IMAGEBLACK;
         }
     }
+    PrevStartSearchPoint = WIDTH >> 1, StartSearchPoint = PrevStartSearchPoint;
+    return 0;
 }
 
-int Labyrinth(int Original_Image[HEIGHT][WIDTH], int threshould)
+int Labyrinth(uint8 Original_Image[HEIGHT][WIDTH], uint8 threshould)
 {
-    static PrevStartSearchPoint = WIDTH >> 1, StartSearchPoint = PrevStartSearchPoint;
-    for(int i = 1; i < HEIGHT + 2 - 1; i++)
+    for(uint8 i = 1; i < HEIGHT + 2 - 1; i++)
     {
-        for(int j = 1; j < WIDTH + 2 - 1; j++)
+        for(uint8 j = 1; j < WIDTH + 2 - 1; j++)
         {
             if(Original_Image[i - 1][j - 1] > threshould)
             {
@@ -42,9 +49,9 @@ int Labyrinth(int Original_Image[HEIGHT][WIDTH], int threshould)
         }
     }
     StartSearchPoint = PrevStartSearchPoint;
+    int moveValue = 0;
     while(StartSearchPoint >= 0 && StartSearchPoint <= WIDTH - 1 && Magic_Image[HEIGHT - 1][StartSearchPoint] != IMAGEWHITE)
     {
-        int moveValue = 0;
         moveValue += MOVEVALUE;
         if(StartSearchPoint <= PrevStartSearchPoint)
         {
@@ -58,6 +65,8 @@ int Labyrinth(int Original_Image[HEIGHT][WIDTH], int threshould)
     {
         return 0;
     }
+    if(!Frame_Not_Lost(HEIGHT - 1,StartSearchPoint))
+        return 0;
     PrevStartSearchPoint = StartSearchPoint;
     for(int i = 0; i < HEIGHT + 2; i++)
     {
@@ -79,12 +88,12 @@ int Labyrinth(int Original_Image[HEIGHT][WIDTH], int threshould)
             {
                 maxSearchStopNumber--;
                 i--;
-                Magic_Left_Boundary[i] = (Magic_Left_Boundary[i] > j && (Magic_Left_Boundary[i] - j <= LEFTRIGHTCHANCEMAXVALUE || Magic_Left_Boundary[i] == INITIALIZATIONLEFT)) ? j : Magic_Left_Boundary[i];
+                Magic_Left_Boundary[i] = Boundary_Updata(i, j, 0, 0);
             }else
             {
                 maxSearchStopNumber--;
                 i--, j--;
-                Magic_Left_Boundary[i] = (Magic_Left_Boundary[i] > j && (Magic_Left_Boundary[i] - j <= LEFTRIGHTCHANCEMAXVALUE || Magic_Left_Boundary[i] == INITIALIZATIONLEFT)) ? j : Magic_Left_Boundary[i];
+                Magic_Left_Boundary[i] = Boundary_Updata(i, j, 0, 0);
                 Direction = Direction == 0 ? 3 : (Direction - 1) % 4;
             }
         }else if(Direction == 1)
@@ -96,12 +105,12 @@ int Labyrinth(int Original_Image[HEIGHT][WIDTH], int threshould)
             {
                 maxSearchStopNumber--;
                 j++;
-                Magic_Left_Boundary[i] = (Magic_Left_Boundary[i] > j && (Magic_Left_Boundary[i] - j <= LEFTRIGHTCHANCEMAXVALUE || Magic_Left_Boundary[i] == INITIALIZATIONLEFT)) ? j : Magic_Left_Boundary[i];
+                Magic_Left_Boundary[i] = Boundary_Updata(i, j, 0, 0);
             }else
             {
                 maxSearchStopNumber--;
                 i--, j++;
-                Magic_Left_Boundary[i] = (Magic_Left_Boundary[i] > j && (Magic_Left_Boundary[i] - j <= LEFTRIGHTCHANCEMAXVALUE || Magic_Left_Boundary[i] == INITIALIZATIONLEFT)) ? j : Magic_Left_Boundary[i];
+                Magic_Left_Boundary[i] = Boundary_Updata(i, j, 0, 0);
                 Direction = Direction == 0 ? 3 : (Direction - 1) % 4;
             }
         }else if(Direction == 2)
@@ -113,12 +122,12 @@ int Labyrinth(int Original_Image[HEIGHT][WIDTH], int threshould)
             {
                 maxSearchStopNumber--;
                 i++;
-                Magic_Left_Boundary[i] = (Magic_Left_Boundary[i] > j && (Magic_Left_Boundary[i] - j <= LEFTRIGHTCHANCEMAXVALUE || Magic_Left_Boundary[i] == INITIALIZATIONLEFT)) ? j : Magic_Left_Boundary[i];
+                Magic_Left_Boundary[i] = Boundary_Updata(i, j, 0, 0);
             }else
             {
                 maxSearchStopNumber--;
                 i++, j++;
-                Magic_Left_Boundary[i] = (Magic_Left_Boundary[i] > j && (Magic_Left_Boundary[i] - j <= LEFTRIGHTCHANCEMAXVALUE || Magic_Left_Boundary[i] == INITIALIZATIONLEFT)) ? j : Magic_Left_Boundary[i];
+                Magic_Left_Boundary[i] = Boundary_Updata(i, j, 0, 0);
                 Direction = Direction == 0 ? 3 : (Direction - 1) % 4;
             }
         }else if(Direction == 3)
@@ -130,12 +139,12 @@ int Labyrinth(int Original_Image[HEIGHT][WIDTH], int threshould)
             {
                 maxSearchStopNumber--;
                 j--;
-                Magic_Left_Boundary[i] = (Magic_Left_Boundary[i] > j && (Magic_Left_Boundary[i] - j <= LEFTRIGHTCHANCEMAXVALUE || Magic_Left_Boundary[i] == INITIALIZATIONLEFT)) ? j : Magic_Left_Boundary[i];
+                Magic_Left_Boundary[i] = Boundary_Updata(i, j, 0, 0);
             }else
             {
                 maxSearchStopNumber--;
                 i++, j--;
-                Magic_Left_Boundary[i] = (Magic_Left_Boundary[i] > j && (Magic_Left_Boundary[i] - j <= LEFTRIGHTCHANCEMAXVALUE || Magic_Left_Boundary[i] == INITIALIZATIONLEFT)) ? j : Magic_Left_Boundary[i];
+                Magic_Left_Boundary[i] = Boundary_Updata(i, j, 0, 0);
                 Direction = Direction == 0 ? 3 : (Direction - 1) % 4;
             }
         }
@@ -155,12 +164,12 @@ int Labyrinth(int Original_Image[HEIGHT][WIDTH], int threshould)
             {
                 maxSearchStopNumber--;
                 i--;
-                Magic_Right_Boundary[i] = (Magic_Right_Boundary[i] < j && (j - Magic_Right_Boundary[i] <= LEFTRIGHTCHANCEMAXVALUE || Magic_Right_Boundary[i] == INITIALIZATIONRIGHT)) ? j : Magic_Right_Boundary[i];
+                Magic_Right_Boundary[i] = Boundary_Updata(i, j, 255, 0);
             }else
             {
                 maxSearchStopNumber--;
                 i--, j++;
-                Magic_Right_Boundary[i] = (Magic_Right_Boundary[i] < j && (j - Magic_Right_Boundary[i] <= LEFTRIGHTCHANCEMAXVALUE || Magic_Right_Boundary[i] == INITIALIZATIONRIGHT)) ? j : Magic_Right_Boundary[i];
+                Magic_Right_Boundary[i] = Boundary_Updata(i, j, 255, 0);
                 Direction = Direction == 0 ? 3 : (Direction - 1) % 4;
             }
         }else if(Direction == 1)
@@ -172,12 +181,12 @@ int Labyrinth(int Original_Image[HEIGHT][WIDTH], int threshould)
             {
                 maxSearchStopNumber--;
                 j--;
-                Magic_Right_Boundary[i] = (Magic_Right_Boundary[i] < j && (j - Magic_Right_Boundary[i] <= LEFTRIGHTCHANCEMAXVALUE || Magic_Right_Boundary[i] == INITIALIZATIONRIGHT)) ? j : Magic_Right_Boundary[i];
+                Magic_Right_Boundary[i] = Boundary_Updata(i, j, 255, 0);
             }else
             {
                 maxSearchStopNumber--;
                 i--, j--;
-                Magic_Right_Boundary[i] = (Magic_Right_Boundary[i] < j && (j - Magic_Right_Boundary[i] <= LEFTRIGHTCHANCEMAXVALUE || Magic_Right_Boundary[i] == INITIALIZATIONRIGHT)) ? j : Magic_Right_Boundary[i];
+                Magic_Right_Boundary[i] = Boundary_Updata(i, j, 255, 0);
                 Direction = Direction == 0 ? 3 : (Direction - 1) % 4;
             }
         }else if(Direction == 2)
@@ -189,12 +198,12 @@ int Labyrinth(int Original_Image[HEIGHT][WIDTH], int threshould)
             {
                 maxSearchStopNumber--;
                 i++;
-                Magic_Right_Boundary[i] = (Magic_Right_Boundary[i] < j && (j - Magic_Right_Boundary[i] <= LEFTRIGHTCHANCEMAXVALUE || Magic_Right_Boundary[i] == INITIALIZATIONRIGHT)) ? j : Magic_Right_Boundary[i];
+                Magic_Right_Boundary[i] = Boundary_Updata(i, j, 255, 0);
             }else
             {
                 maxSearchStopNumber--;
                 i++, j--;
-                Magic_Right_Boundary[i] = (Magic_Right_Boundary[i] < j && (j - Magic_Right_Boundary[i] <= LEFTRIGHTCHANCEMAXVALUE || Magic_Right_Boundary[i] == INITIALIZATIONRIGHT)) ? j : Magic_Right_Boundary[i];
+                Magic_Right_Boundary[i] = Boundary_Updata(i, j, 255, 0);
                 Direction = Direction == 0 ? 3 : (Direction - 1) % 4;
             }
         }else if(Direction == 3)
@@ -206,12 +215,12 @@ int Labyrinth(int Original_Image[HEIGHT][WIDTH], int threshould)
             {
                 maxSearchStopNumber--;
                 j++;
-                Magic_Right_Boundary[i] = (Magic_Right_Boundary[i] < j && (j - Magic_Right_Boundary[i] <= LEFTRIGHTCHANCEMAXVALUE || Magic_Right_Boundary[i] == INITIALIZATIONRIGHT)) ? j : Magic_Right_Boundary[i];
+                Magic_Right_Boundary[i] = Boundary_Updata(i, j, 255, 0);
             }else
             {
                 maxSearchStopNumber--;
                 i++, j++;
-                Magic_Right_Boundary[i] = (Magic_Right_Boundary[i] < j && (j - Magic_Right_Boundary[i] <= LEFTRIGHTCHANCEMAXVALUE || Magic_Right_Boundary[i] == INITIALIZATIONRIGHT)) ? j : Magic_Right_Boundary[i];
+                Magic_Right_Boundary[i] = Boundary_Updata(i, j, 255, 0);
                 Direction = Direction == 0 ? 3 : (Direction - 1) % 4;
             }
         }
@@ -233,4 +242,60 @@ int Labyrinth(int Original_Image[HEIGHT][WIDTH], int threshould)
             Original_Right_Boundary[i - 1] = Magic_Right_Boundary[i] - 1;
         }
     }
+    return 1;
+}
+
+bool Frame_Not_Lost(uint8 i, uint8 j)
+{
+    if(Magic_Image[i][j] == IMAGEBLACK)
+    {
+        return false;
+    }
+    else if(Magic_Image[i - 1][j] == IMAGEBLACK && Magic_Image[i + 1][j] == IMAGEBLACK && Magic_Image[i][j - 1] == IMAGEBLACK && Magic_Image[i][j + 1] == IMAGEBLACK)
+    {
+        return false;
+    }
+    return true;
+}
+
+uint8 Boundary_Updata(uint8 i, uint8 j, uint8 leftOrRight, uint8 selection)
+{
+    if(leftOrRight == 0)
+    {
+        if(Magic_Left_Boundary[i] == INITIALIZATIONLEFT)
+        {
+            return j;
+        }else
+        {
+            if(selection == 0)
+            {
+                return Magic_Left_Boundary[i];
+            }else if(selection == 255)
+            {
+                return (Magic_Left_Boundary[i] > j) ? j : Magic_Left_Boundary[i];
+            }else
+            {
+
+            }
+        }
+    }else if(leftOrRight == 255)
+    {
+        if(Magic_Right_Boundary[i] == INITIALIZATIONRIGHT)
+        {
+            return j;
+        }else
+        {
+            if(selection == 0)
+            {
+                return Magic_Right_Boundary[i];
+            }else if(selection == 255)
+            {
+                return (Magic_Right_Boundary[i] < j) ? j : Magic_Right_Boundary[i];
+            }else
+            {
+
+            }
+        }
+    }
+    return 0;
 }
